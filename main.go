@@ -41,7 +41,7 @@ func init() {
 		<h3>{{.Name}}</h3>
 		<figure>
 			{{ range .Images }}
-				<img src="img/{{ . }}">
+				<a href="../img/{{ . }}"><img src="img/{{ . }}" alt=""></a>
 			{{ end }}
 			 <figcaption>{{.Desc}}</figcaption>
 		</figure>
