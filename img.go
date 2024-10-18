@@ -16,10 +16,20 @@ import (
 	"github.com/nfnt/resize"
 )
 
+var limit chan bool
+
+func init() {
+	limit = make(chan bool, 4)
+}
+
 // sizeCopy returns a path to the resized copy of the image at origPath.
 // The image is resized proportionally so that its width and height do not
 // exceed maxWidth and maxHeight.
 func sizeCopy(cacheDir, origPath string, maxWidth, maxHeight int) (string, error) {
+	limit <- true
+	defer func() {
+		<-limit
+	}()
 	copyPath := fmt.Sprintf("%s/%x-%dx%d.jpg", cacheDir, sha1.Sum([]byte(origPath)), maxWidth, maxHeight)
 
 	// If the copy already exists, return.
