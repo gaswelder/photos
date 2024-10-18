@@ -65,6 +65,8 @@ func main() {
 		log.Fatal(err)
 	}
 
+	limit = make(chan bool, 1)
+
 	// Initialize all image paths.
 	for k, a := range albums {
 		log.Println("initializing paths for", k)

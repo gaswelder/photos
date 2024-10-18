@@ -18,10 +18,6 @@ import (
 
 var limit chan bool
 
-func init() {
-	limit = make(chan bool, 4)
-}
-
 // sizeCopy returns a path to the resized copy of the image at origPath.
 // The image is resized proportionally so that its width and height do not
 // exceed maxWidth and maxHeight.
