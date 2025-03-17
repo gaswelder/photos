@@ -70,7 +70,7 @@ func main() {
 	// Initialize all image paths.
 	for k, a := range albums {
 		log.Println("initializing paths for", k)
-		_, err := a.entries()
+		_, err := a.entries("")
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -82,16 +82,14 @@ func main() {
 		w.Write([]byte(hello))
 	}))
 
-	// Shows a full album.
-	http.Handle("/{album}/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		gname := r.PathValue("album")
+	serveAlbum := func(w http.ResponseWriter, gname, filter string) {
 		album, ok := albums[gname]
 		if !ok {
 			w.WriteHeader(404)
 			w.Write([]byte("album not found"))
 			return
 		}
-		models, err := album.entries()
+		models, err := album.entries(filter)
 		if err != nil {
 			http.Error(w, err.Error(), 500)
 			return
@@ -99,6 +97,18 @@ func main() {
 		html := renderMain(models)
 		w.Header().Add("Content-Type", "text/html")
 		w.Write([]byte(html))
+	}
+
+	// Shows a full album.
+	http.Handle("/{album}/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		gname := r.PathValue("album")
+		serveAlbum(w, gname, "")
+	}))
+
+	http.Handle("/{album}/{filter}", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		gname := r.PathValue("album")
+		filter := r.PathValue("filter")
+		serveAlbum(w, gname, filter)
 	}))
 
 	// Serves a small image from an album.

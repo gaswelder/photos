@@ -60,7 +60,7 @@ func imagePath(id string) string {
 }
 
 // entries returns all entries from the album at the given path.
-func (a *album) entries() ([]entry, error) {
+func (a *album) entries(filter string) ([]entry, error) {
 	dir, err := os.ReadDir(a.Path)
 	if err != nil {
 		return nil, err
@@ -69,7 +69,11 @@ func (a *album) entries() ([]entry, error) {
 	if a.ReverseOrder {
 		slices.Reverse(dir)
 	}
+	filter = strings.ToLower(filter)
 	for _, e := range dir {
+		if !strings.Contains(strings.ToLower(e.Name()), filter) {
+			continue
+		}
 		m, err := a.loadEntry(e.Name(), e.IsDir())
 		if err != nil {
 			continue
