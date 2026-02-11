@@ -8,6 +8,7 @@ import (
 	"slices"
 	"strings"
 	"sync"
+	"time"
 )
 
 // album is a struct describing a local album directory.
@@ -16,7 +17,8 @@ type album struct {
 	ReverseOrder bool
 	PathAsName   bool
 
-	allEntries []entry
+	allEntries  []entry
+	entriesTime time.Time
 }
 
 // entry is a single item in an album.
@@ -61,7 +63,7 @@ func imagePath(id string) string {
 	return hashToPath[id]
 }
 
-func (a *album) load() error {
+func (a *album) reload() error {
 	dir, err := os.ReadDir(a.Path)
 	if err != nil {
 		return err
@@ -69,13 +71,16 @@ func (a *album) load() error {
 	if a.ReverseOrder {
 		slices.Reverse(dir)
 	}
+	var entries []entry
 	for _, e := range dir {
 		m, err := a.loadEntry(e.Name(), e.IsDir())
 		if err != nil {
 			continue
 		}
-		a.allEntries = append(a.allEntries, m)
+		entries = append(entries, m)
 	}
+	a.allEntries = entries
+	a.entriesTime = time.Now()
 	return nil
 }
 

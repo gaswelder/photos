@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"time"
 )
 
 const CacheDir = "cache"
@@ -70,7 +71,7 @@ func main() {
 	// Initialize all image paths.
 	for k, a := range albums {
 		log.Println("loading", k)
-		if err := a.load(); err != nil {
+		if err := a.reload(); err != nil {
 			log.Fatal(err)
 		}
 	}
@@ -130,6 +131,12 @@ func serveAlbum(albums map[string]*album, w http.ResponseWriter, name, filter st
 		w.WriteHeader(404)
 		w.Write([]byte("album not found"))
 		return
+	}
+	if time.Since(album.entriesTime) > 5*time.Minute {
+		if err := album.reload(); err != nil {
+			http.Error(w, err.Error(), 500)
+			return
+		}
 	}
 	entries, err := album.entries(filter)
 	if err != nil {
