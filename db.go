@@ -15,6 +15,8 @@ type album struct {
 	Path         string
 	ReverseOrder bool
 	PathAsName   bool
+
+	allEntries []entry
 }
 
 // entry is a single item in an album.
@@ -59,29 +61,35 @@ func imagePath(id string) string {
 	return hashToPath[id]
 }
 
-// entries returns all entries from the album.
-func (a *album) entries(filter string) ([]entry, error) {
-	var models []entry
-
+func (a *album) load() error {
 	dir, err := os.ReadDir(a.Path)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	if a.ReverseOrder {
 		slices.Reverse(dir)
 	}
-	filter = strings.ToLower(filter)
 	for _, e := range dir {
-		if !strings.Contains(strings.ToLower(e.Name()), filter) {
-			continue
-		}
 		m, err := a.loadEntry(e.Name(), e.IsDir())
 		if err != nil {
 			continue
 		}
-		models = append(models, m)
+		a.allEntries = append(a.allEntries, m)
 	}
-	return models, nil
+	return nil
+}
+
+// entries returns all entries from the album.
+func (a *album) entries(filter string) ([]entry, error) {
+	var entries []entry
+	filter = strings.ToLower(filter)
+	for _, e := range a.allEntries {
+		if !strings.Contains(strings.ToLower(e.Name), filter) {
+			continue
+		}
+		entries = append(entries, e)
+	}
+	return entries, nil
 }
 
 func (a *album) loadEntry(name string, isDir bool) (entry, error) {

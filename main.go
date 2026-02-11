@@ -54,7 +54,7 @@ func init() {
 
 func main() {
 	// Load the config.
-	var albums map[string]album
+	var albums map[string]*album
 	conf, err := os.Open("conf.json")
 	if err != nil {
 		log.Fatal(err)
@@ -69,9 +69,8 @@ func main() {
 
 	// Initialize all image paths.
 	for k, a := range albums {
-		log.Println("initializing paths for", k)
-		_, err := a.entries("")
-		if err != nil {
+		log.Println("loading", k)
+		if err := a.load(); err != nil {
 			log.Fatal(err)
 		}
 	}
@@ -125,7 +124,7 @@ func main() {
 	log.Fatal(http.ListenAndServe(":8001", nil))
 }
 
-func serveAlbum(albums map[string]album, w http.ResponseWriter, name, filter string) {
+func serveAlbum(albums map[string]*album, w http.ResponseWriter, name, filter string) {
 	album, ok := albums[name]
 	if !ok {
 		w.WriteHeader(404)
