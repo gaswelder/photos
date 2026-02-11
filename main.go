@@ -28,11 +28,11 @@ const hello = `
 //go:embed tpl.html
 var tpl string
 
-var modelTpl *template.Template
+var entryTpl *template.Template
 
 func init() {
 	var err error
-	modelTpl, err = template.New("model").Parse(`
+	entryTpl, err = template.New("model").Parse(`
 	{{ if eq (len .Images) 1 }}
 	<article class="model-single">
 	{{ else }}
@@ -82,33 +82,16 @@ func main() {
 		w.Write([]byte(hello))
 	}))
 
-	serveAlbum := func(w http.ResponseWriter, gname, filter string) {
-		album, ok := albums[gname]
-		if !ok {
-			w.WriteHeader(404)
-			w.Write([]byte("album not found"))
-			return
-		}
-		models, err := album.entries(filter)
-		if err != nil {
-			http.Error(w, err.Error(), 500)
-			return
-		}
-		html := renderMain(models)
-		w.Header().Add("Content-Type", "text/html")
-		w.Write([]byte(html))
-	}
-
 	// Shows a full album.
 	http.Handle("/{album}/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		gname := r.PathValue("album")
-		serveAlbum(w, gname, "")
+		serveAlbum(albums, w, gname, "")
 	}))
 
 	http.Handle("/{album}/{filter}", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		gname := r.PathValue("album")
 		filter := r.PathValue("filter")
-		serveAlbum(w, gname, filter)
+		serveAlbum(albums, w, gname, filter)
 	}))
 
 	// Serves a small image from an album.
@@ -142,11 +125,28 @@ func main() {
 	log.Fatal(http.ListenAndServe(":8001", nil))
 }
 
-func renderMain(models []entry) string {
+func serveAlbum(albums map[string]album, w http.ResponseWriter, name, filter string) {
+	album, ok := albums[name]
+	if !ok {
+		w.WriteHeader(404)
+		w.Write([]byte("album not found"))
+		return
+	}
+	entries, err := album.entries(filter)
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+		return
+	}
+	html := renderMain(entries)
+	w.Header().Add("Content-Type", "text/html")
+	w.Write([]byte(html))
+}
+
+func renderMain(entries []entry) string {
 	var results []string
-	for _, m := range models {
+	for _, e := range entries {
 		w := bytes.NewBuffer(nil)
-		err := modelTpl.Execute(w, m)
+		err := entryTpl.Execute(w, e)
 		if err != nil {
 			panic(err)
 		}

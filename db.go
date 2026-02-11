@@ -59,13 +59,14 @@ func imagePath(id string) string {
 	return hashToPath[id]
 }
 
-// entries returns all entries from the album at the given path.
+// entries returns all entries from the album.
 func (a *album) entries(filter string) ([]entry, error) {
+	var models []entry
+
 	dir, err := os.ReadDir(a.Path)
 	if err != nil {
 		return nil, err
 	}
-	var models []entry
 	if a.ReverseOrder {
 		slices.Reverse(dir)
 	}
