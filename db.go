@@ -16,6 +16,7 @@ type album struct {
 	Path         string
 	ReverseOrder bool
 	PathAsName   bool
+	Level        int // if 0, entries will be scanned immediately in the directory. If 1, they will be looked in subdirectories (for example, cars/2008/..., cars/2009/...)
 
 	allEntries  []entry
 	entriesTime time.Time
@@ -64,16 +65,16 @@ func imagePath(id string) string {
 }
 
 func (a *album) reload() error {
-	dir, err := os.ReadDir(a.Path)
+	paths, err := a.entriesPaths()
 	if err != nil {
 		return err
 	}
 	if a.ReverseOrder {
-		slices.Reverse(dir)
+		slices.Reverse(paths)
 	}
 	var entries []entry
-	for _, e := range dir {
-		m, err := a.loadEntry(e.Name(), e.IsDir())
+	for _, p := range paths {
+		m, err := a.loadEntry(p.path, p.isdir)
 		if err != nil {
 			continue
 		}
@@ -82,6 +83,50 @@ func (a *album) reload() error {
 	a.allEntries = entries
 	a.entriesTime = time.Now()
 	return nil
+}
+
+type entryPath struct {
+	isdir bool
+	path  string
+}
+
+func (a *album) entriesPaths() ([]entryPath, error) {
+	if a.Level == 0 {
+		return getPaths(a.Path)
+	}
+	var paths []entryPath
+	dir, err := os.ReadDir(a.Path)
+	if err != nil {
+		return nil, err
+	}
+	for _, d := range dir {
+		if !d.IsDir() {
+			continue
+		}
+		x, err := getPaths(a.Path + "/" + d.Name())
+		if err != nil {
+			return nil, err
+		}
+		for _, z := range x {
+			paths = append(paths, entryPath{
+				isdir: z.isdir,
+				path:  d.Name() + "/" + z.path,
+			})
+		}
+	}
+	return paths, nil
+}
+
+func getPaths(path string) ([]entryPath, error) {
+	dir, err := os.ReadDir(path)
+	if err != nil {
+		return nil, err
+	}
+	var paths []entryPath
+	for _, e := range dir {
+		paths = append(paths, entryPath{isdir: e.IsDir(), path: e.Name()})
+	}
+	return paths, nil
 }
 
 // entries returns all entries from the album.
