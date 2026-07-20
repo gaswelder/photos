@@ -1,0 +1,13 @@
+{{ if eq (len .Images) 1 }}
+    <article class="model-single">
+{{ else }}
+    <article>
+{{ end }}
+        <h3>{{.Name}}</h3>
+        <figure>
+            {{ range .Images }}
+            <a href="../img/{{ . }}"><img src="img/{{ . }}" alt=""></a>
+            {{ end }}
+            <figcaption>{{.Desc}}</figcaption>
+        </figure>
+    </article>

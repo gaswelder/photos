@@ -29,25 +29,13 @@ const hello = `
 //go:embed tpl.html
 var tpl string
 
+//go:embed entry.tpl.html
+var entryTplString string
 var entryTpl *template.Template
 
 func init() {
 	var err error
-	entryTpl, err = template.New("model").Parse(`
-	{{ if eq (len .Images) 1 }}
-	<article class="model-single">
-	{{ else }}
-	<article>
-	{{ end }}
-		<h3>{{.Name}}</h3>
-		<figure>
-			{{ range .Images }}
-				<a href="../img/{{ . }}"><img src="img/{{ . }}" alt=""></a>
-			{{ end }}
-			 <figcaption>{{.Desc}}</figcaption>
-		</figure>
-	</article>
-	`)
+	entryTpl, err = template.New("model").Parse(entryTplString)
 	if err != nil {
 		panic(err)
 	}
