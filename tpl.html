@@ -41,6 +41,38 @@
       display: table-caption;
       margin-top: 7px;
     }
+    #q {
+      display: block;
+      margin-bottom: 20px;
+      padding: 8px 12px;
+      font-size: 16px;
+      width: 400px;
+    }
   </style>
 </head>
 <body>
+  <input type="text" id="q" placeholder="Search…">
+  <script>
+  var qIn = document.getElementById('q');
+  qIn.value = new URLSearchParams(location.search).get('q') || '';
+  qIn.addEventListener('input', function() {
+    var v = qIn.value;
+    var url = new URL(location);
+    v ? url.searchParams.set('q', v) : url.searchParams.delete('q');
+    history.replaceState(null, '', url);
+    search();
+  });
+  function search() {
+    var q = qIn.value.toLowerCase().split(/\s+/).filter(Boolean);
+    var articles = document.querySelectorAll('article');
+    for (var i = 0; i < articles.length; i++) {
+      var a = articles[i];
+      var text = (a.querySelector('h3') || {}).textContent || '';
+      var fig = a.querySelector('figcaption');
+      if (fig) text += ' ' + fig.textContent;
+      var t = text.toLowerCase();
+      var match = !q.length || q.every(function(k) { return t.indexOf(k) !== -1; });
+      a.style.display = match ? '' : 'none';
+    }
+  }
+  </script>
