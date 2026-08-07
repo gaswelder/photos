@@ -43,6 +43,7 @@ func sizeCopy(cacheDir, origPath string, maxWidth, maxHeight int) (string, error
 	log.Println("making "+copyPath, "from", origPath)
 	img, err := imgOpen(origPath)
 	if err != nil {
+		log.Println("error", err)
 		return "", err
 	}
 	w := float32(img.Bounds().Dx())
@@ -73,7 +74,7 @@ func imgOpen(p string) (image.Image, error) {
 	defer f.Close()
 
 	switch strings.ToLower(path.Ext(p)) {
-	case ".jpg":
+	case ".jpg", ".jpeg":
 		return jpeg.Decode(f)
 	case ".gif":
 		return gif.Decode(f)
@@ -85,5 +86,5 @@ func imgOpen(p string) (image.Image, error) {
 
 func isImageExt(ext string) bool {
 	ext = strings.ToLower(ext)
-	return ext == ".jpg" || ext == ".gif" || ext == ".png"
+	return ext == ".jpg" || ext == ".gif" || ext == ".png" || ext == ".jpeg"
 }

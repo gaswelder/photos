@@ -5,9 +5,11 @@
 {{ end }}
         <h3>{{.Name}}</h3>
         <figure>
+            <div class="folder">
             {{ range .Images }}
             <a href="../img/{{ . }}"><img src="img/{{ . }}" alt=""></a>
             {{ end }}
-            <figcaption>{{.Desc}}</figcaption>
+            </div>
+            {{if .Desc}}<figcaption>{{.Desc}}</figcaption>{{end}}
         </figure>
     </article>
